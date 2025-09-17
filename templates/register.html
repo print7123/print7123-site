@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}회원가입 - 온누리인쇄나라{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <h2 class="fw-bold text-primary">회원가입</h2>
+                        <p class="text-muted">온누리인쇄나라 관리자 계정 생성</p>
+                    </div>
+                    
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">사용자명</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">이메일</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">비밀번호</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+
+                        <!-- 선택 항목: 전화/주소 -->
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">전화번호 (선택)</label>
+                            <input type="text" class="form-control" id="phone" name="phone" placeholder="010-0000-0000">
+                        </div>
+                        <div class="mb-3">
+                            <label for="address" class="form-label">주소 (선택)</label>
+                            <input type="text" class="form-control" id="address" name="address" placeholder="주소를 입력하세요">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="password2" class="form-label">비밀번호 확인</label>
+                            <input type="password" class="form-control" id="password2" name="password2" required>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-user-plus me-2"></i>회원가입
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="text-center mt-4">
+                        <p class="text-muted">
+                            이미 계정이 있으신가요? 
+                            <a href="{{ url_for('login') }}" class="text-decoration-none">로그인</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

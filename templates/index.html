@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#007bff">
+    <title>온누리인쇄나라 - 금천구 인쇄소, 당일 인쇄, 무료 견적</title>
+    <meta name="description" content="서울 금천구 인쇄소. 자동 견적 계산, 당일 인쇄, 제본 서비스. 전단, 브로셔, 책자 인쇄 전문">
+    <meta name="keywords" content="금천구 인쇄소, 서울 제본업체, 당일 인쇄, 소량 제본, 전단 인쇄, 브로셔 제작">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    
+    <!-- 인쇄용 CSS -->
+    <style>
+        @media print {
+            .modal {
+                display: block !important;
+                position: static !important;
+                background: white !important;
+            }
+            .modal-dialog {
+                max-width: none !important;
+                margin: 0 !important;
+            }
+            .modal-content {
+                border: none !important;
+                box-shadow: none !important;
+            }
+            .modal-header,
+            .modal-footer {
+                display: none !important;
+            }
+            .modal-body {
+                padding: 0 !important;
+            }
+            .alert {
+                display: none !important;
+            }
+            body * {
+                visibility: hidden;
+            }
+            .modal, .modal * {
+                visibility: visible;
+            }
+            .modal {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+        }
+        
+        /* Q&A 섹션 스타일 */
+        .accordion-button:not(.collapsed) {
+            background-color: #e3f2fd;
+            border-color: #2196f3;
+        }
+        
+        .accordion-button:focus {
+            box-shadow: 0 0 0 0.25rem rgba(33, 150, 243, 0.25);
+        }
+        
+        /* 네비게이션 바 강조 스타일 */
+        .btn-row {
+            position: relative;
+        }
+        
+        /* 고객 문의 CS 파트 강조 */
+        .btn-success, .btn-info, .btn-danger {
+            position: relative;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-success:hover, .btn-info:hover, .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        
+        /* Q&A 버튼 특별 강조 */
+        .btn-danger {
+            background: linear-gradient(45deg, #dc3545, #e74c3c);
+            border: 2px solid #fff;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+        }
+        
+        /* 구분선 스타일 */
+        .btn-row hr {
+            border-top: 2px solid rgba(255,255,255,0.3);
+            margin: 1rem 0;
+        }
+        
+        /* 기타 서비스 라벨 */
+        .btn-row .small {
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* 작업 사진 갤러리 스타일 */
+        .photo-gallery-card {
+            transition: all 0.3s ease;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .photo-gallery-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .photo-gallery-card .card-img-top {
+            transition: transform 0.3s ease;
+        }
+        
+        .photo-gallery-card:hover .card-img-top {
+            transform: scale(1.05);
+        }
+        
+        .category-filter .btn {
+            margin: 0 2px;
+            border-radius: 20px;
+        }
+        
+        .folder-filter .btn.active {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            color: white;
+        }
+        
+        .folder-item {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+        
+        .folder-item:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+        
+        .folder-item .folder-name {
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .folder-item .folder-description {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .upload-form {
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .upload-form .card-header {
+            border-radius: 15px 15px 0 0;
+        }
+        
+        /* 모바일 최적화 CSS */
+        @media (max-width: 768px) {
+            /* 헤더 버튼 모바일 최적화 */
+            .btn-row {
+                flex-direction: column;
+                gap: 0.5rem !important;
+            }
+            
+            .btn-row .btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+                font-size: 0.9rem;
+                padding: 0.75rem 1rem;
+            }
+            
+            /* 견적 폼 모바일 최적화 */
+            .form-control, .form-select {
+                font-size: 16px; /* iOS 줌 방지 */
+                padding: 0.75rem;
+            }
+            
+            /* 견적 결과 모바일 최적화 */
+            #quoteResult .row {
+                margin: 0;
+            }
+            
+            #quoteResult .col-md-6 {
+                padding: 0.5rem;
+            }
+            
+            /* 포트폴리오 그리드 모바일 최적화 */
+            .portfolio-card {
+                margin-bottom: 1rem;
+            }
+            
+            .portfolio-card .card-img-top {
+                height: 150px !important;
+            }
+            
+            /* 테이블 모바일 최적화 */
+            .table-responsive {
+                font-size: 0.8rem;
+            }
+            
+            /* 모달 모바일 최적화 */
+            .modal-dialog {
+                margin: 0.5rem;
+                max-width: calc(100% - 1rem);
+            }
+            
+            /* 파일 업로드 모바일 최적화 */
+            .upload-area {
+                padding: 20px;
+                min-height: 120px;
+            }
+            
+            /* Q&A 아코디언 모바일 최적화 */
+            .accordion-button {
+                font-size: 0.9rem;
+                padding: 0.75rem;
+            }
+            
+            /* 푸터 모바일 최적화 */
+            .footer .row {
+                text-align: center;
+            }
+            
+            .footer .col-lg-4 {
+                margin-bottom: 1rem;
+            }
+        }
+        
+        /* 터치 디바이스 최적화 */
+        @media (hover: none) and (pointer: coarse) {
+            .btn {
+                min-height: 44px; /* iOS 터치 최소 크기 */
+            }
+            
+            .form-control, .form-select {
+                min-height: 44px;
+            }
+            
+            .card {
+                transition: none; /* 터치에서 불필요한 애니메이션 제거 */
+            }
+        }
+        
+        /* 작은 화면 최적화 */
+        @media (max-width: 576px) {
+            .container {
+                padding-left: 15px;
+                padding-right: 15px;
+            }
+            
+            .display-5 {
+                font-size: 1.8rem;
+            }
+            
+            .lead {
+                font-size: 1rem;
+            }
+            
+            /* 헤더 텍스트 모바일 최적화 */
+            .hero-section h1 {
+                font-size: 1.5rem;
+            }
+            
+            .hero-section .lead {
+                font-size: 0.9rem;
+            }
+            
+            /* 버튼 그룹 모바일 최적화 */
+            .btn-group {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .btn-group .btn {
+                border-radius: 0.375rem !important;
+                margin-bottom: 0.25rem;
+            }
+        }
+        
+        /* 가로 모드 모바일 최적화 */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .hero-section {
+                padding: 2rem 0;
+            }
+            
+            .btn-row {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            
+            .btn-row .btn {
+                flex: 1;
+                min-width: 120px;
+            }
+        }
+        
+        /* 고해상도 디스플레이 최적화 */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .card-img-top, .portfolio-card img {
+                image-rendering: -webkit-optimize-contrast;
+                image-rendering: crisp-edges;
+            }
+        }
+        
+        /* 다크 모드 지원 */
+        @media (prefers-color-scheme: dark) {
+            .bg-light {
+                background-color: #f8f9fa !important;
+            }
+        }
+        
+        /* 접근성 개선 */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
+        /* 포커스 표시 개선 */
+        .btn:focus, .form-control:focus, .form-select:focus {
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        
+        /* 터치 피드백 */
+        .btn:active {
+            transform: scale(0.98);
+        }
+        
+        /* 스크롤 최적화 */
+        html {
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        /* 결제 모달 스타일 */
+        .payment-method-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .payment-method-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .payment-method-card.selected {
+            border-color: #007bff;
+            background-color: #f8f9fa;
+        }
+        
+        .payment-form {
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            background-color: #f8f9fa;
+        }
+        
+        .payment-form h6 {
+            color: #495057;
+            font-weight: 600;
+        }
+        
+        /* 카드번호 자동 포맷팅 */
+        #cardNumber {
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+        }
+        
+        /* 결제 진행 버튼 */
+        #processPaymentBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        /* 모바일 결제 최적화 */
+        @media (max-width: 768px) {
+            .payment-method-card {
+                margin-bottom: 1rem;
+            }
+            
+            .payment-form {
+                padding: 1rem;
+            }
+            
+            .modal-dialog {
+                margin: 0.5rem;
+                max-width: calc(100% - 1rem);
+            }
+        }
+        
+        .accordion-item {
+            border: 1px solid #e0e0e0;
+            margin-bottom: 0.5rem;
+            border-radius: 0.5rem !important;
+        }
+        
+        .accordion-button {
+            border-radius: 0.5rem !important;
+            font-weight: 500;
+        }
+        
+        .accordion-body {
+            background-color: #f8f9fa;
+            border-radius: 0 0 0.5rem 0.5rem;
+        }
+        
+        #qa {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hero Section -->
+    <section class="hero-section bg-gradient-primary text-white py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <!-- 추가 헤더 문구 -->
+                <h2 class="display-6 fw-bold mb-3 text-warning">인쇄 제본을 찾는다면</h2>
+                
+                <h1 class="display-3 fw-bold mb-3">
+                    <i class="fas fa-print me-3"></i>온누리인쇄나라
+                </h1>
+                <p class="lead mb-4">금천구 최고의 인쇄·제본 전문업체</p>
+                
+                <!-- 연락처 정보 -->
+                <div class="contact-info mb-3">
+                    <span class="me-4"><i class="fas fa-envelope me-2"></i>print7123@naver.com</span>
+                    <span><i class="fas fa-phone me-2"></i>02-6338-7123</span>
+                </div>
+            </div>
+            <!-- 상단 로그인/회원 영역 -->
+            <div class="d-flex justify-content-end mb-3">
+                {% if current_user.is_authenticated %}
+                <div class="btn-group" role="group">
+                    <a href="{{ url_for('my_orders') }}" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-folder-open me-1"></i>내 주문
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="btn btn-light btn-sm text-primary">
+                        <i class="fas fa-sign-out-alt me-1"></i>로그아웃
+                    </a>
+                </div>
+                {% else %}
+                <div class="btn-group" role="group">
+                    <a href="{{ url_for('login') }}" class="btn btn-light btn-sm text-primary">
+                        <i class="fas fa-sign-in-alt me-1"></i>로그인
+                    </a>
+                    <a href="{{ url_for('register') }}" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-user-plus me-1"></i>회원가입
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            <!-- 모바일 최적화 네비게이션 -->
+            <div class="d-flex gap-2 flex-wrap justify-content-center btn-row">
+                        <a href="#quote" class="btn btn-warning btn-lg px-3">
+                            <i class="fas fa-calculator me-2"></i>자동 견적 계산기
+                        </a>
+                        
+                        <!-- 고객 문의 CS 파트 - 강조 -->
+                        <div class="w-100 my-2">
+                            <hr class="border-secondary opacity-50">
+                            <p class="text-center text-light mb-2 small">고객 문의 CS 파트</p>
+                        </div>
+                        
+                        <a href="tel:02-6338-7123" class="btn btn-success btn-lg px-3">
+                            <i class="fas fa-phone me-2"></i>전화 문의
+                        </a>
+                        <a href="https://pf.kakao.com/_kjRIj" class="btn btn-info btn-lg px-3" target="_blank">
+                            <i class="fab fa-telegram-plane me-2"></i>카카오톡 상담하기
+                        </a>
+                        <a href="#work-photos" class="btn btn-outline-light btn-lg px-3">
+                            <i class="fas fa-images me-2"></i>작업 사진
+                        </a>
+                        <a href="#qa" class="btn btn-danger btn-lg px-3">
+                            <i class="fas fa-question-circle me-2"></i>Q&A
+                        </a>
+                        
+                        <!-- 기타 서비스 - 구분선 -->
+                        <div class="w-100 my-2">
+                            <hr class="border-secondary opacity-50">
+                            <p class="text-center text-light mb-2 small">기타 서비스</p>
+                        </div>
+                        
+                        <a href="#contact" class="btn btn-outline-light btn-lg px-3">
+                            <i class="fas fa-map-marker-alt me-2"></i>오시는 길
+                        </a>
+                        <a href="{{ url_for('go_official') }}" class="btn btn-outline-light btn-lg px-3" target="_blank">
+                            <i class="fas fa-globe me-2"></i>공식 홈페이지
+                        </a>
+                        <a href="https://smartstore.naver.com/print7123" class="btn btn-outline-light btn-lg px-3" target="_blank">
+                            <i class="fas fa-store me-2"></i>스마트스토어
+                        </a>
+                        <a href="https://blog.naver.com/onnuriinsenara" class="btn btn-outline-light btn-lg px-3" target="_blank">
+                            <i class="fas fa-blog me-2"></i>네이버블로그
+                        </a>
+                        <a href="https://blog.naver.com/print7123" class="btn btn-outline-light btn-lg px-3" target="_blank">
+                            <i class="fas fa-blog me-2"></i>블로그2
+                        </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Quote Section -->
+    <section id="quote" class="py-5 bg-light">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card shadow-lg border-0">
+                        <div class="card-header bg-primary text-white text-center">
+                            <h3 class="mb-0">
+                                <i class="fas fa-calculator me-2"></i>자동 견적 계산기
+                            </h3>
+                            <p class="mb-0 mt-2">30초 만에 정확한 견적을 확인하세요! <span class="badge bg-warning text-dark ms-2">단일 파일</span></p>
+                        </div>
+                        <div class="card-body p-4">
+                            <form id="quoteForm">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">고객명</label>
+                                        <input type="text" class="form-control" id="customerName" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">페이지 수</label>
+                                        <input type="number" class="form-control" id="pages" min="1" required 
+                                               placeholder="예: 50" inputmode="numeric">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">출력 타입</label>
+                                        <select class="form-select" id="printType" required>
+                                            <option value="black_white">흑백</option>
+                                            <option value="ink_color">잉크칼라</option>
+                                            <option value="laser_color">레이져칼라</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">인쇄 방식</label>
+                                        <select class="form-select" id="printMethod" required>
+                                            <option value="single">단면</option>
+                                            <option value="double">양면</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">제본 방식</label>
+                                        <select class="form-select" id="bindingType" required>
+                                            <option value="ring">링제본</option>
+                                            <option value="perfect">무선제본</option>
+                                            <option value="saddle">중철제본</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">용지 크기</label>
+                                        <select class="form-select" id="size" required>
+                                            <option value="A4">A4</option>
+                                            <option value="B5">B5</option>
+                                            <option value="A5">A5</option>
+                                            <option value="비규격">비규격 (별도 문의)</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">제본 부수</label>
+                                        <input type="number" class="form-control" id="quantity" min="1" required 
+                                               placeholder="예: 100" inputmode="numeric">
+                                    </div>
+                                </div>
+                            <div class="text-center mt-4">
+                                <button type="button" class="btn btn-primary btn-lg px-5" id="calculateBtn" onclick="handleQuoteCalculation(event)">
+                                    <i class="fas fa-calculator me-2"></i>견적 계산
+                                </button>
+                            </div>
+                            
+                            <!-- 가격표 안내 -->
+                            <div class="mt-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    <strong>가격 안내:</strong> 페이지 수와 수량에 따라 차등 가격이 적용됩니다. 
+                                    기본 80g 복사용지, 부가세 포함입니다.
+                                </small>
+                            </div>
+                            </form>
+                            
+                            <!-- 견적 결과 -->
+                            <div id="quoteResult" class="mt-4" style="display: none;">
+                                <div class="alert alert-success">
+                                    <h5 class="alert-heading">
+                                        <i class="fas fa-check-circle me-2"></i>견적 결과
+                                    </h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p class="mb-1"><strong>총 페이지 수:</strong> <span id="totalPages"></span>페이지</p>
+                                            <div class="row mb-1">
+                                                <div class="col-6">
+                                                    <strong>페이지당 단가:</strong> <span id="unitPrintPrice"></span>원
+                                                </div>
+                                                <div class="col-6">
+                                                    <strong>권당 제본 비용:</strong> <span id="bindingPrice"></span>원
+                                                </div>
+                                            </div>
+                                            <div class="row mb-1">
+                                                <div class="col-6">
+                                                    <strong>총 제본 비용:</strong> <span id="totalBindingPrice"></span>원
+                                                </div>
+                                            </div>
+                                            <p class="mb-1"><strong>총 출력 가격:</strong> <span id="printPrice"></span>원</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p class="mb-1"><strong>단가 (출력+제본):</strong> <span id="unitPrice"></span>원</p>
+                                            <p class="mb-1"><strong>수량:</strong> <span id="quantityResult"></span>권</p>
+                                            <p class="mb-0"><strong>총 가격:</strong> <span id="totalPrice" class="text-primary fw-bold fs-4"></span>원</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 잉크칼라 안내 메시지 -->
+                                    <div id="inkColorInfo" class="alert alert-info mt-3" style="display: none;">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <strong>잉크칼라 선택!</strong> 레이저칼라보다 저렴한 가격으로 고품질 컬러 인쇄를 제공합니다.
+                                    </div>
+                                    
+                                    <hr>
+                                    <div class="d-flex gap-2 flex-wrap justify-content-center">
+                                        <button class="btn btn-success btn-lg px-4" onclick="emailOrder()">
+                                            <i class="fas fa-envelope me-2"></i>메일로 파일 첨부
+                                        </button>
+                                        <button class="btn btn-warning btn-lg px-4" onclick="kakaoOrder()">
+                                            <i class="fab fa-telegram-plane me-2"></i>카톡으로 파일 전송
+                                        </button>
+                                        <button class="btn btn-info btn-lg px-4" id="previewBtn" onclick="previewQuote()">
+                                            <i class="fas fa-eye me-2"></i>견적서 미리보기 후 저장
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Work Photos Gallery Section -->
+    <section id="work-photos" class="py-5 bg-white">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold text-primary">
+                    <i class="fas fa-images me-3"></i>작업 사진 갤러리
+                </h2>
+                <p class="lead text-muted">다양한 제본 방식별 작업 사진을 확인하세요</p>
+                <div class="mt-3">
+                    <button type="button" class="btn btn-outline-primary" onclick="adminLogin()" id="adminLoginBtn">
+                        <i class="fas fa-user-shield me-2"></i>관리자 로그인
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Folder Management (관리자 전용) -->
+            <div class="row mb-4" id="folderSection" style="display: none;">
+                <div class="col-lg-8 mx-auto">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-folder-plus me-2"></i>폴더 관리
+                            </h5>
+                            <button type="button" class="btn btn-outline-light btn-sm" onclick="showCreateFolderForm()">
+                                <i class="fas fa-plus me-1"></i>새 폴더
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="folderList">
+                                <!-- 폴더 목록이 동적으로 로드됩니다 -->
+                            </div>
+                            
+                            <!-- 폴더 생성 폼 -->
+                            <div id="createFolderForm" style="display: none;" class="mt-3">
+                                <form id="folderForm">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label for="folderName" class="form-label">폴더명</label>
+                                            <input type="text" class="form-control" id="folderName" name="name" required placeholder="예: 회사소개서">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="folderDescription" class="form-label">설명</label>
+                                            <input type="text" class="form-control" id="folderDescription" name="description" placeholder="폴더 설명">
+                                        </div>
+                                        <div class="col-12 text-center">
+                                            <button type="submit" class="btn btn-success me-2">
+                                                <i class="fas fa-save me-1"></i>폴더 생성
+                                            </button>
+                                            <button type="button" class="btn btn-secondary" onclick="hideCreateFolderForm()">
+                                                <i class="fas fa-times me-1"></i>취소
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Upload Form (관리자 전용) -->
+            <div class="row mb-5" id="uploadSection" style="display: none;">
+                <div class="col-lg-8 mx-auto">
+                    <div class="card border-0 shadow-sm upload-form">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-upload me-2"></i>작업 사진 업로드
+                            </h5>
+                            <button type="button" class="btn btn-outline-light btn-sm" onclick="adminLogout()">
+                                <i class="fas fa-sign-out-alt me-1"></i>로그아웃
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <form id="photoUploadForm" enctype="multipart/form-data">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="photoFile" class="form-label">사진 파일</label>
+                                        <input type="file" class="form-control" id="photoFile" name="photo" accept="image/*" required>
+                                        <div class="form-text">JPG, PNG, GIF 파일만 업로드 가능합니다.</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="photoFolder" class="form-label">폴더 선택</label>
+                                        <select class="form-select" id="photoFolder" name="folder_id" required>
+                                            <option value="">폴더를 선택하세요</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="photoDescription" class="form-label">작업 설명</label>
+                                        <textarea class="form-control" id="photoDescription" name="description" rows="3" placeholder="작업 내용에 대한 간단한 설명을 입력하세요"></textarea>
+                                    </div>
+                                    <div class="col-12 text-center">
+                                        <button type="submit" class="btn btn-primary btn-lg">
+                                            <i class="fas fa-upload me-2"></i>사진 업로드
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Folder Filter -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="text-center">
+                        <div class="btn-group folder-filter" role="group" aria-label="폴더 필터">
+                            <button type="button" class="btn btn-outline-primary active" data-folder="all">
+                                전체
+                            </button>
+                            <!-- 폴더 버튼들이 동적으로 로드됩니다 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Photo Gallery -->
+            <div class="row" id="photoGallery">
+                <!-- 사진들이 동적으로 로드됩니다 -->
+                <div class="col-12 text-center">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        아직 업로드된 작업 사진이 없습니다. 관리자에게 문의하세요!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h2 class="display-6 fw-bold text-primary mb-4">왜 온누리인쇄나라인가?</h2>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="d-flex align-items-center">
+                                <div class="feature-icon bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1 fw-bold">당일 서비스</h6>
+                                    <p class="mb-0 text-muted">오전 주문 시 당일 완성 가능</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-center">
+                                <div class="feature-icon bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                    <i class="fas fa-calculator"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1 fw-bold">자동 견적</h6>
+                                    <p class="mb-0 text-muted">30초 만에 정확한 견적 확인</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex align-items-center">
+                                <div class="feature-icon bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                    <i class="fas fa-headset"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1 fw-bold">전문 상담</h6>
+                                    <p class="mb-0 text-muted">카카오톡 실시간 상담 서비스</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="text-center">
+                        <h4 class="text-primary fw-bold mb-4">인쇄 방식별 최적 선택</h4>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body text-center p-4">
+                                        <div class="text-success mb-3">
+                                            <i class="fas fa-tint fa-2x"></i>
+                                        </div>
+                                        <h6 class="fw-bold text-success">잉크칼라 출력</h6>
+                                        <p class="text-muted mb-2">문서, 도표의 칼라에 최적</p>
+                                        <small class="text-success">워밍업 없음 · 용지 뒤틀림 적음</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body text-center p-4">
+                                        <div class="text-primary mb-3">
+                                            <i class="fas fa-bolt fa-2x"></i>
+                                        </div>
+                                        <h6 class="fw-bold text-primary">레이저칼라 출력</h6>
+                                        <p class="text-muted mb-2">선명한 화질의 칼라 출력에 유리</p>
+                                        <small class="text-primary">사진·이미지 인쇄 최적</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body text-center p-4">
+                                        <div class="text-dark mb-3">
+                                            <i class="fas fa-file-alt fa-2x"></i>
+                                        </div>
+                                        <h6 class="fw-bold text-dark">레이저 흑백</h6>
+                                        <p class="text-muted mb-2">선명하고 깔끔한 흑백 출력</p>
+                                        <small class="text-dark">최고 품질의 흑백 인쇄</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Q&A Section -->
+    <section id="qa" class="py-5">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold text-primary">자주 묻는 질문</h2>
+                <p class="lead text-muted">온누리인쇄나라 이용 시 궁금한 점들을 확인해보세요</p>
+            </div>
+            
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="accordion" id="qaAccordion">
+                        <!-- Q&A 1 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="qa1">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1" aria-expanded="true" aria-controls="collapse1">
+                                    <i class="fas fa-question-circle me-2 text-primary"></i>
+                                    인쇄 주문은 어떻게 하나요?
+                                </button>
+                            </h2>
+                            <div id="collapse1" class="accordion-collapse collapse show" aria-labelledby="qa1" data-bs-parent="#qaAccordion">
+                                <div class="accordion-body">
+                                    <strong>간단한 3단계로 주문하세요!</strong><br>
+                                    1. 홈페이지에서 견적 계산<br>
+                                    2. 원하는 인쇄 옵션 선택<br>
+                                    3. 파일 업로드 및 주문 완료<br><br>
+                                    전화(02-6338-7123) 또는 카카오톡으로도 주문 가능합니다.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Q&A 2 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="qa2">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2" aria-expanded="false" aria-controls="collapse2">
+                                    <i class="fas fa-question-circle me-2 text-primary"></i>
+                                    당일 인쇄가 가능한가요?
+                                </button>
+                            </h2>
+                            <div id="collapse2" class="accordion-collapse collapse" aria-labelledby="qa2" data-bs-parent="#qaAccordion">
+                                <div class="accordion-body">
+                                    <strong>네, 당일 인쇄 가능합니다!</strong><br>
+                                    • 오전 10시 이전 주문: 당일 오후 6시 완료<br>
+                                    • 오후 2시 이전 주문: 다음날 오전 완료<br>
+                                    • 긴급 주문: 전화 문의 시 당일 완료 가능<br><br>
+                                    수량과 난이도에 따라 소요시간이 달라질 수 있습니다.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Q&A 3 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="qa3">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3" aria-expanded="false" aria-controls="collapse3">
+                                    <i class="fas fa-question-circle me-2 text-primary"></i>
+                                    어떤 파일 형식을 지원하나요?
+                                </button>
+                            </h2>
+                            <div id="collapse3" class="accordion-collapse collapse" aria-labelledby="qa3" data-bs-parent="#qaAccordion">
+                                <div class="accordion-body">
+                                    <strong>다양한 파일 형식을 지원합니다!</strong><br>
+                                    • <strong>문서:</strong> PDF, DOC, DOCX, HWP<br>
+                                    • <strong>이미지:</strong> JPG, PNG, TIFF, EPS<br>
+                                    • <strong>디자인:</strong> AI, PSD, CDR<br>
+                                    • <strong>기타:</strong> PPT, PPTX, XLS, XLSX<br><br>
+                                    <strong>📄 권장사항:</strong> PDF 파일로 가급적 제출해 주세요 (폰트 문제 등 방지)<br>
+                                    <strong>❌ 제한사항:</strong> 캐드 파일(CAD)은 지원하지 않습니다
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Q&A 4 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="qa4">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4" aria-expanded="false" aria-controls="collapse4">
+                                    <i class="fas fa-question-circle me-2 text-primary"></i>
+                                    최소 주문 수량이 있나요?
+                                </button>
+                            </h2>
+                            <div id="collapse4" class="accordion-collapse collapse" aria-labelledby="qa4" data-bs-parent="#qaAccordion">
+                                <div class="accordion-body">
+                                    <strong>최소 주문 수량은 없습니다!</strong><br>
+                                    • 1부부터 주문 가능<br>
+                                    • 소량 인쇄 전문<br>
+                                    • 대량 주문 시 할인 혜택<br><br>
+                                    개인용부터 기업용까지 모든 수량을 환영합니다.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Q&A 5 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="qa5">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse5" aria-expanded="false" aria-controls="collapse5">
+                                    <i class="fas fa-question-circle me-2 text-primary"></i>
+                                    배송 서비스가 있나요?
+                                </button>
+                            </h2>
+                            <div id="collapse5" class="accordion-collapse collapse" aria-labelledby="qa5" data-bs-parent="#qaAccordion">
+                                <div class="accordion-body">
+                                    <strong>배송 서비스도 가능합니다!</strong><br>
+                                    • <strong>직접 픽업:</strong> 무료 (권장)<br>
+                                    • <strong>배송:</strong> 택배비 별도<br>
+                                    • <strong>지역:</strong> 서울 전역 배송 가능<br>
+                                    • <strong>배송료:</strong> 수량에 따라 상이<br><br>
+                                    배송이 필요한 경우 주문 시 미리 말씀해 주세요.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Q&A 6 -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="qa6">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse6" aria-expanded="false" aria-controls="collapse6">
+                                    <i class="fas fa-question-circle me-2 text-primary"></i>
+                                    결제 방법은 어떻게 되나요?
+                                </button>
+                            </h2>
+                            <div id="collapse6" class="accordion-collapse collapse" aria-labelledby="qa6" data-bs-parent="#qaAccordion">
+                                <div class="accordion-body">
+                                    <strong>다양한 결제 방법을 지원합니다!</strong><br>
+                                    • <strong>현금:</strong> 매장 방문 시<br>
+                                    • <strong>계좌이체:</strong> 사전 입금<br>
+                                    • <strong>카드결제:</strong> 매장 방문 시<br>
+                                    • <strong>네이버페이:</strong> 온라인 주문 시<br><br>
+                                    결제 방법은 주문 시 상담을 통해 결정합니다.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 익명 질문 작성 폼 -->
+                    <div class="mt-5">
+                        <div class="card border-success">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-user-secret me-2"></i>익명 질문 등록
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-info mb-4">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>익명으로 질문하세요!</strong> 개인정보 없이도 궁금한 점을 문의할 수 있습니다.
+                                </div>
+                                <form id="questionForm">
+                                    <div class="mb-3">
+                                        <label for="questionTitle" class="form-label">질문 제목</label>
+                                        <input type="text" class="form-control" id="questionTitle" name="title" placeholder="예: 인쇄 비용이 궁금합니다" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="questionContent" class="form-label">질문 내용</label>
+                                        <textarea class="form-control" id="questionContent" name="content" rows="4" placeholder="자세한 질문 내용을 작성해 주세요..." required></textarea>
+                                    </div>
+                                    <div class="text-end">
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-paper-plane me-2"></i>익명 질문 등록
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 등록된 질문 목록 -->
+                    <div class="mt-4">
+                        <div class="card border-info">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-comments me-2"></i>등록된 질문과 답변
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="questionList">
+                                    <div class="text-center text-muted py-3">
+                                        <i class="fas fa-inbox fa-2x mb-2"></i>
+                                        <p>아직 등록된 질문이 없습니다. 첫 번째 질문을 등록해 보세요!</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 추가 문의 안내 -->
+                    <div class="text-center mt-5">
+                        <div class="card border-primary">
+                            <div class="card-body">
+                                <h5 class="card-title text-primary">
+                                    <i class="fas fa-headset me-2"></i>더 궁금한 점이 있으신가요?
+                                </h5>
+                                <p class="card-text mb-4">위에서 답을 찾지 못하셨거나 개인적인 상담이 필요하시다면 언제든 문의해 주세요!</p>
+                                
+                                <!-- 카카오톡 상담 강조 -->
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <div class="card border-warning h-100">
+                                            <div class="card-body text-center">
+                                                <i class="fab fa-telegram-plane fa-3x text-warning mb-3"></i>
+                                                <h6 class="card-title text-warning">카카오톡 상담</h6>
+                                                <p class="card-text small">실시간 빠른 상담<br>24시간 문의 가능</p>
+                                                <a href="https://pf.kakao.com/_kjRIj" class="btn btn-warning btn-sm" target="_blank">
+                                                    <i class="fab fa-telegram-plane me-1"></i>상담하기
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card border-info h-100">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-envelope fa-3x text-info mb-3"></i>
+                                                <h6 class="card-title text-info">이메일 문의</h6>
+                                                <p class="card-text small">상세한 문의사항<br>파일 첨부 가능</p>
+                                                <a href="mailto:onuri_print@naver.com" class="btn btn-info btn-sm">
+                                                    <i class="fas fa-envelope me-1"></i>이메일 보내기
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 전화 문의 -->
+                                <div class="d-flex gap-2 justify-content-center flex-wrap">
+                                    <a href="tel:02-6338-7123" class="btn btn-primary">
+                                        <i class="fas fa-phone me-2"></i>전화 문의 (02-6338-7123)
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-5 bg-primary text-white">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto text-center">
+                    <h2 class="display-6 fw-bold mb-4">오시는 길</h2>
+                    
+                    <!-- 지도 섹션 -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-lg-7">
+                            <div style="height: 450px; width: 450px; border-radius: 10px; overflow: hidden; background: #f8f9fa; margin: 0 auto; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); border: 2px solid #dee2e6;">
+                                <img src="{{ url_for('static', filename='images/map.png') }}" 
+                                     alt="온누리인쇄나라 위치 지도" 
+                                     style="width: 100%; height: 100%; object-fit: cover; cursor: pointer; display: block;"
+                                     onclick="openNaverMap()"
+                                     title="클릭하면 네이버 지도에서 보기"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div style="display: none; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #6c757d;">
+                                    <i class="fas fa-map-marked-alt fa-3x mb-3"></i>
+                                    <h5>지도 이미지를 불러올 수 없습니다</h5>
+                                    <p class="mb-3">아래 버튼을 클릭하여 네이버 지도에서 확인하세요</p>
+                                    <button class="btn btn-primary" onclick="openNaverMap()">
+                                        <i class="fas fa-map me-2"></i>네이버 지도에서 보기
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="d-flex flex-column justify-content-between align-items-center" style="height: 450px;">
+                                <div class="card bg-transparent border-light text-white" style="width: 100%;">
+                                    <div class="card-body text-center py-3">
+                                        <i class="fas fa-map-marker-alt fa-lg mb-2 text-warning"></i>
+                                        <h6 class="card-title mb-2">주소</h6>
+                                        <p class="card-text small mb-0">서울 금천구 가산디지털1로 142<br>가산더스카이밸리1차 8층 816호</p>
+                                    </div>
+                                </div>
+                                <div class="card bg-transparent border-light text-white" style="width: 100%;">
+                                    <div class="card-body text-center py-3">
+                                        <i class="fas fa-phone fa-lg mb-2 text-success"></i>
+                                        <h6 class="card-title mb-2">연락처</h6>
+                                        <p class="card-text small mb-0">전화: 02-6338-7123 | 운영시간: 평일 09:00-16:00</p>
+                                    </div>
+                                </div>
+                                <div class="card bg-transparent border-light text-white" style="width: 100%;">
+                                    <div class="card-body text-center py-3">
+                                        <i class="fas fa-subway fa-lg mb-2 text-info"></i>
+                                        <h6 class="card-title mb-2">교통안내</h6>
+                                        <p class="card-text small mb-0">1호선 가산디지털단지역<br>7번 출구 도보 5분</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 지도 버튼들 -->
+                    <div class="d-flex gap-3 justify-content-center flex-wrap">
+                        <a href="https://map.naver.com/v5/search/온누리인쇄나라" class="btn btn-warning btn-lg px-4" target="_blank">
+                            <i class="fas fa-map me-2"></i>네이버 지도에서 보기
+                        </a>
+                        <a href="tel:02-6338-7123" class="btn btn-success btn-lg px-4">
+                            <i class="fas fa-phone me-2"></i>전화걸기
+                        </a>
+                        <a href="https://pf.kakao.com/_kjRIj" class="btn btn-info btn-lg px-4" target="_blank">
+                            <i class="fab fa-telegram-plane me-2"></i>카카오톡 상담
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-print me-2"></i>온누리인쇄나라
+                    </h5>
+                    <p class="text-muted">
+                        서울시 금천구 최고의 인쇄·제본 전문업체<br>
+                        고품질 인쇄, 합리적인 가격
+                    </p>
+                </div>
+                <div class="col-lg-4">
+                    <h6 class="fw-bold mb-3">연락처</h6>
+                    <p class="text-muted mb-1">
+                        <i class="fas fa-phone me-2"></i>02-6338-7123
+                    </p>
+                    <p class="text-muted mb-1">
+                        <i class="fas fa-mobile-alt me-2"></i>010-2624-7123
+                    </p>
+                    <p class="text-muted mb-1">
+                        <i class="fas fa-envelope me-2"></i>print7123@naver.com
+                    </p>
+                    <p class="text-muted">
+                        <i class="fas fa-clock me-2"></i>09:30-16:00 (월-금)
+                    </p>
+                </div>
+                <div class="col-lg-4">
+                    <h6 class="fw-bold mb-3">서비스 & 블로그</h6>
+                    <ul class="list-unstyled text-muted">
+                        <li><a href="#quote" class="text-muted text-decoration-none">자동 견적 계산기</a></li>
+                        <li><a href="#services" class="text-muted text-decoration-none">서비스 안내</a></li>
+                        <li><a href="https://blog.naver.com/print7123" class="text-muted text-decoration-none" target="_blank">블로그(온누리)</a></li>
+                        <li><a href="https://blog.naver.com/print7123" class="text-muted text-decoration-none" target="_blank">블로그(print7123)</a></li>
+                        <li><a href="https://smartstore.naver.com/print7123" class="text-muted text-decoration-none" target="_blank">스마트스토어</a></li>
+                        <li><a href="https://talk.naver.com/print7123" class="text-muted text-decoration-none" target="_blank">네이버톡톡</a></li>
+                        <li><a href="#contact" class="text-muted text-decoration-none">오시는 길</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="text-muted mb-0">&copy; 2024 온누리인쇄나라. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="d-flex justify-content-md-end gap-3">
+                        <a href="#" class="text-muted"><i class="fab fa-facebook fa-lg"></i></a>
+                        <a href="#" class="text-muted"><i class="fab fa-instagram fa-lg"></i></a>
+                        <a href="#" class="text-muted"><i class="fab fa-youtube fa-lg"></i></a>
+                        <a href="#" class="text-muted"><i class="fab fa-blog fa-lg"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 결제 모달 -->
+    <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="paymentModalLabel">
+                        <i class="fas fa-credit-card me-2"></i>결제하기
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- 주문 정보 요약 -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0"><i class="fas fa-receipt me-2"></i>주문 정보</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>고객명:</strong> <span id="paymentCustomerName"></span></p>
+                                    <p class="mb-1"><strong>페이지 수:</strong> <span id="paymentPages"></span>페이지</p>
+                                    <p class="mb-1"><strong>수량:</strong> <span id="paymentQuantity"></span>권</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>인쇄 타입:</strong> <span id="paymentPrintType"></span></p>
+                                    <p class="mb-1"><strong>제본 방식:</strong> <span id="paymentBindingType"></span></p>
+                                    <p class="mb-1"><strong>크기:</strong> <span id="paymentSize"></span></p>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>페이지당 단가:</strong> <span id="paymentUnitPrice"></span>원</p>
+                                    <p class="mb-1"><strong>권당 제본비:</strong> <span id="paymentBindingPrice"></span>원</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>부가세:</strong> <span id="paymentTax"></span>원</p>
+                                    <p class="mb-0"><strong class="text-success fs-5">총 결제금액:</strong> <span id="paymentTotalAmount" class="text-success fw-bold fs-4"></span>원</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 결제 방법 선택 -->
+                    <div class="mb-4">
+                        <h6 class="mb-3"><i class="fas fa-credit-card me-2"></i>결제 방법 선택</h6>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="card payment-method-card" data-method="card">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-credit-card fa-2x text-primary mb-2"></i>
+                                        <h6>카드결제</h6>
+                                        <small class="text-muted">신용카드/체크카드</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card payment-method-card" data-method="transfer">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-university fa-2x text-success mb-2"></i>
+                                        <h6>계좌이체</h6>
+                                        <small class="text-muted">무통장입금</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card payment-method-card" data-method="cash_receipt">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-receipt fa-2x text-warning mb-2"></i>
+                                        <h6>현금영수증</h6>
+                                        <small class="text-muted">현금결제</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 카드결제 폼 -->
+                    <div id="cardPaymentForm" class="payment-form" style="display: none;">
+                        <h6 class="mb-3"><i class="fas fa-credit-card me-2"></i>카드 정보 입력</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">카드사</label>
+                                <select class="form-select" id="cardCompany">
+                                    <option value="신한카드">신한카드</option>
+                                    <option value="KB국민카드">KB국민카드</option>
+                                    <option value="하나카드">하나카드</option>
+                                    <option value="삼성카드">삼성카드</option>
+                                    <option value="현대카드">현대카드</option>
+                                    <option value="롯데카드">롯데카드</option>
+                                    <option value="BC카드">BC카드</option>
+                                    <option value="NH카드">NH카드</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">카드번호</label>
+                                <input type="text" class="form-control" id="cardNumber" placeholder="1234-5678-9012-3456" maxlength="19">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">유효기간 (MM/YY)</label>
+                                <input type="text" class="form-control" id="cardExpiry" placeholder="12/25" maxlength="5">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">CVC</label>
+                                <input type="text" class="form-control" id="cardCvc" placeholder="123" maxlength="3">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">할부개월</label>
+                                <select class="form-select" id="cardInstallment">
+                                    <option value="0">일시불</option>
+                                    <option value="2">2개월</option>
+                                    <option value="3">3개월</option>
+                                    <option value="6">6개월</option>
+                                    <option value="12">12개월</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 이체결제 폼 -->
+                    <div id="transferPaymentForm" class="payment-form" style="display: none;">
+                        <h6 class="mb-3"><i class="fas fa-university me-2"></i>이체 정보</h6>
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle me-2"></i>입금 계좌 정보</h6>
+                            <p class="mb-1"><strong>은행:</strong> 국민은행</p>
+                            <p class="mb-1"><strong>계좌번호:</strong> 123-456-789012</p>
+                            <p class="mb-0"><strong>예금주:</strong> 온누리인쇄나라</p>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">입금자명</label>
+                                <input type="text" class="form-control" id="transferName" placeholder="입금자명을 입력하세요">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">입금 은행</label>
+                                <select class="form-select" id="transferBank">
+                                    <option value="국민은행">국민은행</option>
+                                    <option value="신한은행">신한은행</option>
+                                    <option value="하나은행">하나은행</option>
+                                    <option value="우리은행">우리은행</option>
+                                    <option value="농협은행">농협은행</option>
+                                    <option value="기업은행">기업은행</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 현금영수증 폼 -->
+                    <div id="cashReceiptForm" class="payment-form" style="display: none;">
+                        <h6 class="mb-3"><i class="fas fa-receipt me-2"></i>현금영수증 발급</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">발급 구분</label>
+                                <select class="form-select" id="cashReceiptType">
+                                    <option value="personal">개인소득공제</option>
+                                    <option value="business">사업자지출증빙</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">휴대폰번호 또는 사업자등록번호</label>
+                                <input type="text" class="form-control" id="cashReceiptNumber" placeholder="010-1234-5678 또는 123-45-67890">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-success" id="processPaymentBtn" onclick="processPayment()" disabled>
+                        <i class="fas fa-credit-card me-2"></i>결제 진행
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- HTML2PDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
+
